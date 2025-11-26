@@ -1,5 +1,3 @@
-// lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_navigation.dart';
