@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/local_data.dart';
-import 'detail_screen.dart';
+import 'detail_page.dart';
 
 class FavoritePage extends StatefulWidget {
   const FavoritePage({super.key});

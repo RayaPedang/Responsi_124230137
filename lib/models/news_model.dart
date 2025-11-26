@@ -1,4 +1,4 @@
-class News {
+class NewsModel {
   final int id;
   final String title;
   final String url;
@@ -7,7 +7,7 @@ class News {
   final String summary;
   final String publishedAt;
 
-  News({
+  NewsModel({
     required this.id,
     required this.title,
     required this.url,
@@ -17,8 +17,8 @@ class News {
     required this.publishedAt,
   });
 
-  factory News.fromJson(Map<String, dynamic> json) {
-    return News(
+  factory NewsModel.fromJson(Map<String, dynamic> json) {
+    return NewsModel(
       id: json['id'],
       title: json['title'] ?? 'No Title',
       url: json['url'] ?? '',
@@ -27,18 +27,5 @@ class News {
       summary: json['summary'] ?? 'No Summary',
       publishedAt: json['published_at'] ?? '',
     );
-  }
-
-  // Method baru untuk mengubah objek ke format JSON (Map)
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'url': url,
-      'image_url': imageUrl,
-      'news_site': newsSite,
-      'summary': summary,
-      'published_at': publishedAt,
-    };
   }
 }

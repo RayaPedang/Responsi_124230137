@@ -1,6 +1,9 @@
+import 'dart:ffi';
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
-import 'favorite_screen.dart';
+import 'home_page.dart';
+import 'favorite_page.dart';
+import 'package:hive/hive.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
