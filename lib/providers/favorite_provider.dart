@@ -20,7 +20,6 @@ class FavoriteProvider with ChangeNotifier {
     return _favorites.contains(item);
   }
 
-  // Fungsi khusus untuk swipe delete
   void removeFavorite(NewsItem item) {
     _favorites.remove(item);
     notifyListeners();

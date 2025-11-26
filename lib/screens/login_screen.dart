@@ -14,7 +14,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   void _login() async {
-    // Validasi sederhana
     if (_usernameController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty) {
       final prefs = await SharedPreferences.getInstance();
@@ -25,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeScreen()),
-        ); // [cite: 39]
+        );
       }
     }
   }
@@ -44,7 +43,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 20),
             TextField(
-              // [cite: 38]
               controller: _usernameController,
               decoration: const InputDecoration(
                 labelText: 'Username',
@@ -53,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 10),
             TextField(
-              // [cite: 38]
               controller: _passwordController,
               decoration: const InputDecoration(
                 labelText: 'Password',

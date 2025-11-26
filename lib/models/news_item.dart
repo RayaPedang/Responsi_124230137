@@ -21,9 +21,7 @@ class NewsItem {
     return NewsItem(
       id: json['id'],
       title: json['title'],
-      imageUrl:
-          json['image_url'] ??
-          'https://via.placeholder.com/150', // Fallback image
+      imageUrl: json['image_url'] ?? 'https://via.placeholder.com/150',
       summary: json['summary'] ?? 'No summary available.',
       url: json['url'],
       publishedAt: json['published_at'],

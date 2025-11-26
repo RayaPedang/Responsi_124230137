@@ -10,7 +10,6 @@ class DetailScreen extends StatelessWidget {
 
   const DetailScreen({super.key, required this.newsItem});
 
-  // Fungsi untuk launch URL
   Future<void> _launchUrl() async {
     final Uri url = Uri.parse(newsItem.url);
     if (!await launchUrl(url)) {
@@ -22,7 +21,7 @@ class DetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Detail Page"), // [cite: 57]
+        title: const Text("Detail Page"),
         actions: [
           Consumer<FavoriteProvider>(
             builder: (context, provider, child) {
@@ -60,31 +59,27 @@ class DetailScreen extends StatelessWidget {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
-                  ), // [cite: 58]
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     DateFormat(
                       'MMMM dd, yyyy',
                     ).format(DateTime.parse(newsItem.publishedAt)),
                     style: const TextStyle(color: Colors.grey),
-                  ), // [cite: 59]
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     newsItem.newsSite,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    newsItem.summary,
-                    style: const TextStyle(fontSize: 16),
-                  ), // [cite: 60]
+                  Text(newsItem.summary, style: const TextStyle(fontSize: 16)),
                 ],
               ),
             ),
           ],
         ),
       ),
-      // Tombol Floating Button untuk "Read more..." [cite: 55, 63]
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _launchUrl,
         label: const Text("Read more..."),

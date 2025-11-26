@@ -9,7 +9,7 @@ class FavoriteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Favorite Page")), // [cite: 64, 65]
+      appBar: AppBar(title: const Text("Favorite Page")),
       body: Consumer<FavoriteProvider>(
         builder: (context, provider, child) {
           final favorites = provider.favorites;
@@ -19,11 +19,10 @@ class FavoriteScreen extends StatelessWidget {
           }
 
           return ListView.builder(
-            itemCount: favorites.length, // [cite: 66]
+            itemCount: favorites.length,
             itemBuilder: (context, index) {
               final item = favorites[index];
               return Dismissible(
-                // Widget untuk fitur Swipe
                 key: Key(item.id.toString()),
                 direction: DismissDirection.horizontal,
                 onDismissed: (direction) {
@@ -51,7 +50,7 @@ class FavoriteScreen extends StatelessWidget {
                       item.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                    ), // [cite: 69]
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
