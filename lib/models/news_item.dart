@@ -30,4 +30,13 @@ class NewsItem {
       newsSite: json['news_site'] ?? '',
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is NewsItem && other.id == id;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
 }

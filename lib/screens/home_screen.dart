@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../services/api_service.dart';
 import '../models/news_item.dart';
+import '../providers/favorite_provider.dart';
 import 'detail_screen.dart';
 import 'favorite_screen.dart';
 import 'login_screen.dart';
-import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Welcome, $username"), // [cite: 42, 43]
+          title: Text("Welcome, $username"),
           actions: [
             IconButton(
               icon: const Icon(Icons.favorite),
@@ -60,9 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           bottom: const TabBar(
             tabs: [
-              Tab(text: 'Articles'), // [cite: 44]
-              Tab(text: 'Blogs'), // [cite: 45]
-              Tab(text: 'Reports'), // [cite: 52]
+              Tab(text: 'Articles'),
+              Tab(text: 'Blogs'),
+              Tab(text: 'Reports'),
             ],
           ),
         ),
@@ -78,7 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// Widget Reusable untuk List Berita
 class NewsList extends StatelessWidget {
   final String endpoint;
   const NewsList({super.key, required this.endpoint});
@@ -102,12 +103,14 @@ class NewsList extends StatelessWidget {
           itemCount: snapshot.data!.length,
           itemBuilder: (context, index) {
             final item = snapshot.data![index];
+
             return Card(
-              margin: const EdgeInsets.all(8),
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               child: ListTile(
                 leading: Image.network(
                   item.imageUrl,
-                  width: 100,
+                  width: 80,
+                  height: 80,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       const Icon(Icons.broken_image),
@@ -116,12 +119,28 @@ class NewsList extends StatelessWidget {
                   item.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                ), // [cite: 46]
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 subtitle: Text(
                   DateFormat(
                     'MMMM dd, yyyy',
                   ).format(DateTime.parse(item.publishedAt)),
-                ), // [cite: 47]
+                  style: const TextStyle(fontSize: 12),
+                ),
+                trailing: Consumer<FavoriteProvider>(
+                  builder: (context, provider, child) {
+                    final isFav = provider.isFavorite(item);
+                    return IconButton(
+                      icon: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        color: isFav ? Colors.red : Colors.grey,
+                      ),
+                      onPressed: () {
+                        provider.toggleFavorite(item);
+                      },
+                    );
+                  },
+                ),
                 onTap: () {
                   Navigator.push(
                     context,
