@@ -28,4 +28,16 @@ class News {
       publishedAt: json['published_at'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'url': url,
+      'image_url': imageUrl,
+      'news_site': newsSite,
+      'summary': summary,
+      'published_at': publishedAt,
+    };
+  }
 }

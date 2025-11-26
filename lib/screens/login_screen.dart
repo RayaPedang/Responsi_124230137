@@ -5,7 +5,7 @@ import 'main_navigation.dart'; // Pastikan ini mengarah ke file navigasi utama
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
-  _LoginPageState createState() => _LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
