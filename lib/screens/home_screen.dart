@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/news_model.dart';
 import 'detail_screen.dart';
+import 'favorite_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _favoriteIds = savedFavorites.map((item) {
         final dynamic json = jsonDecode(item);
-        return "${json['head']}${json['tail']}";
+        return json['id'].toString();
       }).toSet();
     });
   }
@@ -39,12 +40,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // Mengambil data dari API
   Future<List<News>> fetchNews() async {
     final response = await http.get(
-      Uri.parse(' https://api.spaceflightnewsapi.net/v4/articles/'),
+      Uri.parse('https://api.spaceflightnewsapi.net/v4/articles/'),
     );
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
-      final List<dynamic> newsJson = data['news'];
+      final List<dynamic> newsJson = data['results'] ?? [];
       return newsJson.map((json) => News.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load articles');
@@ -55,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _toggleFavorite(News news) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
-    String newsId = news.title + news.newsSite;
+    String newsId = news.id.toString();
     String newsJson = json.encode(news.toJson());
 
     bool isAlreadyFavorite = _favoriteIds.contains(newsId);
@@ -63,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (isAlreadyFavorite) {
       savedFavorites.removeWhere((item) {
         final dynamic json = jsonDecode(item);
-        return "${json['title']}${json['newsSite']}" == newsId;
+        return json['id'].toString() == newsId;
       });
       _favoriteIds.remove(newsId);
 
@@ -111,7 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
               final news = snapshot.data![index];
-              final String uniqueId = news.title + news.newsSite;
+              final String uniqueId = news.id.toString();
               final bool isFavorite = _favoriteIds.contains(uniqueId);
 
               return Card(
@@ -127,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     news.title,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text('${news.title} - ${news.newsSite}'),
+                  subtitle: Text(news.newsSite),
                   trailing: IconButton(
                     // Logika perubahan Icon dan Warna
                     icon: Icon(

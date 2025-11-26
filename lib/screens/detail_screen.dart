@@ -27,8 +27,7 @@ class _DetailScreenState extends State<DetailScreen> {
     setState(() {
       isFavorite = savedFavorites.any((item) {
         final existing = News.fromJson(json.decode(item));
-        return existing.title == widget.news.title &&
-            existing.newsSite == widget.news.newsSite;
+        return existing.id == widget.news.id;
       });
     });
   }
@@ -42,8 +41,7 @@ class _DetailScreenState extends State<DetailScreen> {
       // Hapus
       savedFavorites.removeWhere((item) {
         final existing = News.fromJson(json.decode(item));
-        return existing.title == widget.news.title &&
-            existing.newsSite == widget.news.newsSite;
+        return existing.id == widget.news.id;
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

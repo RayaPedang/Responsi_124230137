@@ -1,16 +1,16 @@
 class News {
-  final String id;
+  final int id;
   final String title;
-  final String authors;
+  final List<String> authors;
   final String url;
   final String imageUrl;
   final String newsSite;
   final String summary;
   final String publishedAt;
   final String updatedAt;
-  final String featured;
-  final String launches;
-  final String events;
+  final bool featured;
+  final List<dynamic> launches;
+  final List<dynamic> events;
 
   News({
     required this.id,
@@ -27,23 +27,21 @@ class News {
     required this.events,
   });
 
-  // Factory untuk membuat object dari JSON API
+  // Factory untuk membuat object dari JSON API Space Flight News
   factory News.fromJson(Map<String, dynamic> json) {
     return News(
-      id: json['amiiboSeries'] ?? 'Unknown',
-      title: json['character'] ?? 'Unknown',
-      authors: json['gameSeries'] ?? 'Unknown',
-      url: json['head'] ?? '',
-      imageUrl: json['image'] ?? '',
-      newsSite: json['name'] ?? 'Unknown',
-      summary: json['release'] != null
-          ? Release.fromJson(json['release']).toString()
-          : 'Unknown',
-      publishedAt: json['tail'] ?? '',
-      updatedAt: json['type'] ?? 'Unknown',
-      featured: json['type'] ?? 'Unknown',
-      launches: json['type'] ?? 'Unknown',
-      events: json['type'] ?? 'Unknown',
+      id: json['id'] ?? 0,
+      title: json['title'] ?? 'Unknown',
+      authors: List<String>.from(json['authors'] ?? []),
+      url: json['url'] ?? '',
+      imageUrl: json['image_url'] ?? '',
+      newsSite: json['news_site'] ?? 'Unknown',
+      summary: json['summary'] ?? 'No summary available',
+      publishedAt: json['published_at'] ?? '',
+      updatedAt: json['updated_at'] ?? '',
+      featured: json['featured'] ?? false,
+      launches: json['launches'] ?? [],
+      events: json['events'] ?? [],
     );
   }
 
@@ -53,33 +51,13 @@ class News {
     'title': title,
     'authors': authors,
     'url': url,
-    'imageUrl': imageUrl,
-    'newsSite': newsSite,
+    'image_url': imageUrl,
+    'news_site': newsSite,
     'summary': summary,
-    'publishedAt': publishedAt,
-    'updatedAt': updatedAt,
+    'published_at': publishedAt,
+    'updated_at': updatedAt,
     'featured': featured,
     'launches': launches,
     'events': events,
   };
-}
-
-class Release {
-  final String? au;
-  final String? eu;
-  final String? jp;
-  final String? na;
-
-  Release({this.au, this.eu, this.jp, this.na});
-
-  factory Release.fromJson(Map<String, dynamic> json) {
-    return Release(
-      au: json['au'],
-      eu: json['eu'],
-      jp: json['jp'],
-      na: json['na'],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {'au': au, 'eu': eu, 'jp': jp, 'na': na};
 }
