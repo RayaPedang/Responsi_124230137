@@ -25,15 +25,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Mengambil data favorit dari SharedPreferences untuk pengecekan UI
   Future<void> _loadFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
 
-    setState(() {
-      _favoriteIds = savedFavorites.map((item) {
-        final dynamic json = jsonDecode(item);
-        return json['id'].toString();
-      }).toSet();
-    });
+      setState(() {
+        _favoriteIds = savedFavorites
+            .map((item) {
+              try {
+                final dynamic json = jsonDecode(item);
+                if (json is Map<String, dynamic>) {
+                  return json['id'].toString();
+                }
+              } catch (e) {
+                // Skip invalid items
+              }
+              return '';
+            })
+            .where((id) => id.isNotEmpty)
+            .toSet();
+      });
+    } catch (e) {
+      // Handle error silently
+      debugPrint('Error loading favorites: $e');
+    }
   }
 
   // Mengambil data dari API
@@ -53,38 +68,54 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Fungsi toggle favorit
   Future<void> _toggleFavorite(News news) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
-    String newsId = news.id.toString();
-    String newsJson = json.encode(news.toJson());
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
+      String newsId = news.id.toString();
+      String newsJson = json.encode(news.toJson());
 
-    bool isAlreadyFavorite = _favoriteIds.contains(newsId);
+      bool isAlreadyFavorite = _favoriteIds.contains(newsId);
 
-    if (isAlreadyFavorite) {
-      savedFavorites.removeWhere((item) {
-        final dynamic json = jsonDecode(item);
-        return json['id'].toString() == newsId;
-      });
-      _favoriteIds.remove(newsId);
+      if (isAlreadyFavorite) {
+        savedFavorites.removeWhere((item) {
+          try {
+            final dynamic json = jsonDecode(item);
+            if (json is Map<String, dynamic>) {
+              return json['id'].toString() == newsId;
+            }
+          } catch (e) {
+            return false;
+          }
+          return false;
+        });
+        _favoriteIds.remove(newsId);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${news.title} removed from favorites')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${news.title} removed from favorites')),
+          );
+        }
+      } else {
+        savedFavorites.add(newsJson);
+        _favoriteIds.add(newsId);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${news.title} added to favorites')),
+          );
+        }
       }
-    } else {
-      savedFavorites.add(newsJson);
-      _favoriteIds.add(newsId);
 
+      await prefs.setStringList('favorites', savedFavorites);
+      setState(() {}); // Trigger rebuild untuk update warna icon
+    } catch (e) {
+      debugPrint('Error toggling favorite: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${news.title} added to favorites')),
+          const SnackBar(content: Text('Error updating favorites')),
         );
       }
     }
-
-    await prefs.setStringList('favorites', savedFavorites);
-    setState(() {}); // Trigger rebuild untuk update warna icon
   }
 
   @override

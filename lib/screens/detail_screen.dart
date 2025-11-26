@@ -22,49 +22,70 @@ class _DetailScreenState extends State<DetailScreen> {
 
   // Cek apakah item ini sudah ada di favorit
   Future<void> _checkFavoriteStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
-    setState(() {
-      isFavorite = savedFavorites.any((item) {
-        final existing = News.fromJson(json.decode(item));
-        return existing.id == widget.news.id;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
+      setState(() {
+        isFavorite = savedFavorites.any((item) {
+          try {
+            final existing = News.fromJson(json.decode(item));
+            return existing.id == widget.news.id;
+          } catch (e) {
+            return false;
+          }
+        });
       });
-    });
+    } catch (e) {
+      debugPrint('Error checking favorite status: $e');
+    }
   }
 
   // Tambah atau Hapus Favorit
   Future<void> _toggleFavorite() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
 
-    if (isFavorite) {
-      // Hapus
-      savedFavorites.removeWhere((item) {
-        final existing = News.fromJson(json.decode(item));
-        return existing.id == widget.news.id;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${widget.news.title} removed from favorites'),
-          ),
-        );
+      if (isFavorite) {
+        // Hapus
+        savedFavorites.removeWhere((item) {
+          try {
+            final existing = News.fromJson(json.decode(item));
+            return existing.id == widget.news.id;
+          } catch (e) {
+            return false;
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${widget.news.title} removed from favorites'),
+            ),
+          );
+        }
+      } else {
+        // Tambah
+        String currentItemJson = json.encode(widget.news.toJson());
+        savedFavorites.add(currentItemJson);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('${widget.news.title} added to favorites')),
+          );
+        }
       }
-    } else {
-      // Tambah
-      String currentItemJson = json.encode(widget.news.toJson());
-      savedFavorites.add(currentItemJson);
+
+      await prefs.setStringList('favorites', savedFavorites);
+      setState(() {
+        isFavorite = !isFavorite;
+      });
+    } catch (e) {
+      debugPrint('Error toggling favorite: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${widget.news.title} added to favorites')),
+          const SnackBar(content: Text('Error updating favorites')),
         );
       }
     }
-
-    await prefs.setStringList('favorites', savedFavorites);
-    setState(() {
-      isFavorite = !isFavorite;
-    });
   }
 
   @override

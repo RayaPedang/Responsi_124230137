@@ -22,13 +22,25 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
 
   // Memuat data saat halaman dibuka
   Future<void> _loadFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
-    setState(() {
-      _favorites = savedFavorites
-          .map((item) => News.fromJson(json.decode(item)))
-          .toList();
-    });
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> savedFavorites = prefs.getStringList('favorites') ?? [];
+      setState(() {
+        _favorites = savedFavorites
+            .map((item) {
+              try {
+                return News.fromJson(json.decode(item));
+              } catch (e) {
+                debugPrint('Error parsing favorite item: $e');
+                return null;
+              }
+            })
+            .whereType<News>()
+            .toList();
+      });
+    } catch (e) {
+      debugPrint('Error loading favorites: $e');
+    }
   }
 
   // Fungsi hapus data
