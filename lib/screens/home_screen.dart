@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/news_model.dart';
 import '../services/api_sources.dart';
-import '../services/local_data.dart';
+import '../services/local_data.dart'; // Import file yang baru dibuat
 import 'detail_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,7 +14,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String _username = "";
-  String _selectedCategory = "articles"; // Default menu
+  String _selectedCategory = "articles"; // Default category
   late Future<List<News>> _dataFuture;
 
   @override
@@ -41,11 +41,20 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Selamat datang, $_username")),
+      // Soal 2: Appbar menampilkan username
       body: Column(
         children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Selamat datang, $_username",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+          // Menu Pilihan (Articles, Blogs, Reports)
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -55,7 +64,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
-
+          const SizedBox(height: 10),
           Expanded(
             child: FutureBuilder<List<News>>(
               future: _dataFuture,
@@ -72,18 +81,24 @@ class _HomePageState extends State<HomePage> {
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
                     final item = snapshot.data![index];
+                    final isFav = LocalData.isFavorite(item);
+
                     return Card(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 10,
                         vertical: 5,
                       ),
                       child: ListTile(
-                        leading: Image.network(
-                          item.imageUrl,
-                          width: 80,
-                          fit: BoxFit.cover,
-                          errorBuilder: (ctx, err, stack) =>
-                              const Icon(Icons.error),
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            item.imageUrl,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) =>
+                                const Icon(Icons.broken_image, size: 80),
+                          ),
                         ),
                         title: Text(
                           item.title,
@@ -91,32 +106,49 @@ class _HomePageState extends State<HomePage> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         subtitle: Text(
-                          item.publishedAt.substring(0, 10),
-                        ), // Format tanggal simpel
+                          item.publishedAt.length > 10
+                              ? item.publishedAt.substring(0, 10)
+                              : item.publishedAt,
+                        ),
                         trailing: IconButton(
                           icon: Icon(
-                            LocalData.isFavorite(item)
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: Colors.red,
+                            isFav ? Icons.favorite : Icons.favorite_border,
+                            color: isFav ? Colors.red : Colors.grey,
                           ),
                           onPressed: () {
                             setState(() {
-                              if (LocalData.isFavorite(item)) {
+                              if (isFav) {
                                 LocalData.removeFavorite(item);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${item.title} dihapus dari favorit',
+                                    ),
+                                  ),
+                                );
                               } else {
                                 LocalData.addFavorite(item);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${item.title} ditambahkan ke favorit',
+                                    ),
+                                  ),
+                                );
                               }
                             });
                           },
                         ),
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          // Navigasi ke Detail Page (Soal 3)
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => DetailPage(news: item),
                             ),
                           );
+                          // Refresh state ketika kembali dari detail page
+                          setState(() {});
                         },
                       ),
                     );
@@ -134,8 +166,8 @@ class _HomePageState extends State<HomePage> {
     final isSelected = _selectedCategory == value;
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.purple[100] : Colors.grey[200],
-        foregroundColor: isSelected ? Colors.purple : Colors.black,
+        backgroundColor: isSelected ? Colors.blue : Colors.grey[200],
+        foregroundColor: isSelected ? Colors.white : Colors.black,
       ),
       onPressed: () => _changeCategory(value),
       child: Text(label),

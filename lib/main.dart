@@ -11,9 +11,17 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Responsi',
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-      // Aplikasi dimulai dari Halaman Login (Soal 1)
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+        ),
+      ),
       home: const LoginPage(),
     );
   }

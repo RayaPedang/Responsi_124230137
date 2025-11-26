@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'main_screen.dart';
-import 'package:hive/hive.dart';
-import 'register_screen.dart';
+import 'main_navigation.dart'; // Pastikan ini mengarah ke file navigasi utama
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,56 +12,44 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _isObscure = true; // Untuk toggle visibility password
+
   Future<void> _login() async {
     String username = _usernameController.text;
     String password = _passwordController.text;
 
+    // Validasi Input tidak boleh kosong
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Username dan Password tidak boleh kosong!"),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
         ),
       );
-
       return;
     }
 
-    final usersBox = Hive.box('users');
-    if (!usersBox.containsKey(username)) {
+    // Kriteria Login Sederhana (Hardcoded sesuai checklist Anda: Raya / 137)
+    // Atau bisa dihapus if-nya jika ingin sembarang login bisa masuk
+    if (username == 'Raya' && password == '137') {
+      // Simpan data login ke Shared Preferences (Soal 1)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('username', username);
+      await prefs.setBool('isLogin', true);
+
+      if (mounted) {
+        // Navigasi ke Halaman Utama (MainNavigation)
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Pengguna tidak ditemukan. Silakan daftar terlebih dahulu.",
-          ),
+          content: Text("Username atau Password salah! (Coba: Raya / 137)"),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
         ),
-      );
-      return;
-    }
-
-    final storedPassword = usersBox.get(username) as String?;
-    if (storedPassword == null || storedPassword != password) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Password salah."),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('username', username);
-    await prefs.setBool('isLogin', true);
-
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     }
   }
@@ -73,58 +59,57 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Login Meal App",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(
-                labelText: "Username",
-                border: OutlineInputBorder(),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Space News Login",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Password",
-                border: OutlineInputBorder(),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  labelText: "Username",
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: _login, child: const Text("Login")),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Belum punya akun? "),
-                const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterPage(),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Daftar akun",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
+              const SizedBox(height: 10),
+              TextField(
+                controller: _passwordController,
+                obscureText: _isObscure,
+                decoration: InputDecoration(
+                  labelText: "Password",
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isObscure ? Icons.visibility : Icons.visibility_off,
                     ),
+                    onPressed: () {
+                      setState(() {
+                        _isObscure = !_isObscure;
+                      });
+                    },
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Login"),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
