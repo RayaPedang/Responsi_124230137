@@ -71,7 +71,7 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Pages'),
+        title: const Text('Detail Article'),
         actions: [
           IconButton(
             icon: Icon(
@@ -87,51 +87,144 @@ class _DetailScreenState extends State<DetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
+            // Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
               child: Image.network(
                 widget.news.imageUrl,
                 height: 250,
-                fit: BoxFit.contain,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 250,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.image_not_supported, size: 64),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 20),
+
+            // Title
             Text(
               widget.news.title,
-              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-            const Divider(),
-            _buildDetailRow('Title', widget.news.title),
-            _buildDetailRow('Source', widget.news.newsSite),
-            _buildDetailRow('Published At', widget.news.publishedAt),
-            _buildDetailRow('Summary', widget.news.summary),
-            const SizedBox(height: 20),
-            const Text(
-              "Release Dates",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
+            const SizedBox(height: 16),
+
+            // Source and Date
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Source',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.news.newsSite,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'Published',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.news.publishedAt.split('T').first,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 20),
+
+            // Divider
+            const Divider(),
+            const SizedBox(height: 16),
+
+            // Summary Title
+            const Text(
+              'Summary',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+
+            // Summary Content
+            Text(
+              widget.news.summary.isEmpty
+                  ? 'No summary available'
+                  : widget.news.summary,
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.6,
+                color: Colors.grey,
+              ),
+              textAlign: TextAlign.justify,
+            ),
+            const SizedBox(height: 20),
+
+            // Read More Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // Could open URL using url_launcher package
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Opening article in browser...'),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.open_in_new),
+                label: const Text('Read Full Article'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: Colors.blue,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-          ),
-          Text(value, style: const TextStyle(color: Colors.grey, fontSize: 16)),
-        ],
       ),
     );
   }
