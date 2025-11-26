@@ -29,6 +29,7 @@ class News {
     );
   }
 
+  // Method baru untuk mengubah objek ke format JSON (Map)
   Map<String, dynamic> toJson() {
     return {
       'id': id,

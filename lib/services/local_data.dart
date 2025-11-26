@@ -3,53 +3,47 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/news_model.dart';
 
 class LocalData {
-  static const String _kFavoritesKey = 'favorites';
-
-  // In-memory cache
+  // List statis untuk menampung data di memori aplikasi
   static List<News> favorites = [];
-
-  // Initial load from SharedPreferences
-  static Future<void> loadFavorites() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getStringList(_kFavoritesKey) ?? [];
-      favorites = raw
-          .map((s) {
-            try {
-              return News.fromJson(json.decode(s));
-            } catch (_) {
-              return null;
-            }
-          })
-          .whereType<News>()
-          .toList();
-    } catch (e) {
-      favorites = [];
-    }
-  }
-
-  static Future<void> _saveFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = favorites.map((e) => json.encode(e.toJson())).toList();
-    await prefs.setStringList(_kFavoritesKey, raw);
-  }
+  static const String _prefKey = 'favorites_data';
 
   // Cek apakah item sudah ada di favorit
   static bool isFavorite(News news) {
     return favorites.any((element) => element.id == news.id);
   }
 
-  // Tambah ke favorit (persisted)
+  // Tambah ke favorit dan simpan ke penyimpanan lokal
   static Future<void> addFavorite(News news) async {
     if (!isFavorite(news)) {
       favorites.add(news);
-      await _saveFavorites();
+      await _saveToStorage();
     }
   }
 
-  // Hapus dari favorit (persisted)
+  // Hapus dari favorit dan perbarui penyimpanan lokal
   static Future<void> removeFavorite(News news) async {
     favorites.removeWhere((element) => element.id == news.id);
-    await _saveFavorites();
+    await _saveToStorage();
+  }
+
+  // Simpan list favorit saat ini ke SharedPreferences
+  static Future<void> _saveToStorage() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Ubah List<News> menjadi JSON String
+    final String encodedData = json.encode(
+      favorites.map((e) => e.toJson()).toList(),
+    );
+    await prefs.setString(_prefKey, encodedData);
+  }
+
+  // Muat data dari SharedPreferences ke variabel statis
+  static Future<void> loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? jsonString = prefs.getString(_prefKey);
+
+    if (jsonString != null) {
+      final List<dynamic> jsonList = json.decode(jsonString);
+      favorites = jsonList.map((e) => News.fromJson(e)).toList();
+    }
   }
 }

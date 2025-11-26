@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart'; // Tambahkan import ini
+import 'package:intl/intl.dart';
 import '../models/news_model.dart';
 import '../services/api_sources.dart';
 import '../services/local_data.dart';
@@ -22,6 +22,13 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadUsername();
+
+    // Load data favorit dari penyimpanan lokal saat halaman dibuka
+    LocalData.loadFavorites().then((_) {
+      // SetState dipanggil agar UI terupdate setelah data favorit dimuat
+      if (mounted) setState(() {});
+    });
+
     _dataFuture = ApiSource.getData(_selectedCategory);
   }
 
@@ -39,13 +46,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // Fungsi baru untuk memformat tanggal sesuai PDF (Contoh: November 18 2024)
+  // Fungsi helper untuk format tanggal sesuai soal
   String _formatDate(String dateString) {
     try {
       final DateTime parsedDate = DateTime.parse(dateString);
       return DateFormat('MMMM d yyyy').format(parsedDate);
     } catch (e) {
-      return dateString; // Fallback jika parsing gagal
+      return dateString;
     }
   }
 
@@ -115,7 +122,6 @@ class _HomePageState extends State<HomePage> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        // Menggunakan helper _formatDate di sini
                         subtitle: Text(
                           _formatDate(item.publishedAt),
                         ),
@@ -124,10 +130,11 @@ class _HomePageState extends State<HomePage> {
                             isFav ? Icons.favorite : Icons.favorite_border,
                             color: isFav ? Colors.red : Colors.grey,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              if (isFav) {
-                                LocalData.removeFavorite(item);
+                          onPressed: () async {
+                            // Menggunakan await karena fungsi add/remove sekarang async
+                            if (isFav) {
+                              await LocalData.removeFavorite(item);
+                              if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
@@ -135,8 +142,10 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                 );
-                              } else {
-                                LocalData.addFavorite(item);
+                              }
+                            } else {
+                              await LocalData.addFavorite(item);
+                              if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
@@ -145,7 +154,9 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 );
                               }
-                            });
+                            }
+                            // Refresh UI setelah operasi selesai
+                            setState(() {});
                           },
                         ),
                         onTap: () async {
