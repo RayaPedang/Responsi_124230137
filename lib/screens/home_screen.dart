@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart'; // Tambahkan import ini
 import '../models/news_model.dart';
 import '../services/api_sources.dart';
 import '../services/local_data.dart';
@@ -12,14 +14,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Default category diset ke 'articles' sesuai soal
-  String _selectedCategory = "articles";
+  String _username = "";
+  String _selectedCategory = "articles"; // Default category
   late Future<List<News>> _dataFuture;
 
   @override
   void initState() {
     super.initState();
+    _loadUsername();
     _dataFuture = ApiSource.getData(_selectedCategory);
+  }
+
+  void _loadUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = prefs.getString('username') ?? "User";
+    });
   }
 
   void _changeCategory(String category) {
@@ -29,17 +39,32 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Fungsi baru untuk memformat tanggal sesuai PDF (Contoh: November 18 2024)
+  String _formatDate(String dateString) {
+    try {
+      final DateTime parsedDate = DateTime.parse(dateString);
+      return DateFormat('MMMM d yyyy').format(parsedDate);
+    } catch (e) {
+      return dateString; // Fallback jika parsing gagal
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Selamat datang, $_username",
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
           // Menu Pilihan (Articles, Blogs, Reports)
           Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 10.0,
-              horizontal: 8.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -49,6 +74,7 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
           ),
+          const SizedBox(height: 10),
           Expanded(
             child: FutureBuilder<List<News>>(
               future: _dataFuture,
@@ -58,26 +84,70 @@ class _HomePageState extends State<HomePage> {
                 } else if (snapshot.hasError) {
                   return Center(child: Text("Error: ${snapshot.error}"));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("Tidak ada data ditemukan."));
+                  return const Center(child: Text("Tidak ada data."));
                 }
 
                 return ListView.builder(
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
                     final item = snapshot.data![index];
-                    // Cek apakah item sudah difavoritkan
                     final isFav = LocalData.isFavorite(item);
 
                     return Card(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 10,
-                        vertical: 6,
+                        vertical: 5,
                       ),
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: InkWell(
+                      child: ListTile(
+                        leading: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            item.imageUrl,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (ctx, err, stack) =>
+                                const Icon(Icons.broken_image, size: 80),
+                          ),
+                        ),
+                        title: Text(
+                          item.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        // Menggunakan helper _formatDate di sini
+                        subtitle: Text(
+                          _formatDate(item.publishedAt),
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(
+                            isFav ? Icons.favorite : Icons.favorite_border,
+                            color: isFav ? Colors.red : Colors.grey,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              if (isFav) {
+                                LocalData.removeFavorite(item);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${item.title} dihapus dari favorit',
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                LocalData.addFavorite(item);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${item.title} ditambahkan ke favorit',
+                                    ),
+                                  ),
+                                );
+                              }
+                            });
+                          },
+                        ),
                         onTap: () async {
                           // Navigasi ke Detail Page
                           await Navigator.push(
@@ -86,94 +156,9 @@ class _HomePageState extends State<HomePage> {
                               builder: (context) => DetailPage(news: item),
                             ),
                           );
-                          // Refresh halaman saat kembali (untuk update status favorit)
+                          // Refresh state ketika kembali dari detail page
                           setState(() {});
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  item.imageUrl,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, stack) => Container(
-                                    width: 80,
-                                    height: 80,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.broken_image),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      item.title,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      item.publishedAt.length > 10
-                                          ? item.publishedAt.substring(0, 10)
-                                          : item.publishedAt,
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  isFav
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: isFav ? Colors.red : Colors.grey,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    if (isFav) {
-                                      LocalData.removeFavorite(item);
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Dihapus dari favorit'),
-                                          duration: Duration(seconds: 1),
-                                        ),
-                                      );
-                                    } else {
-                                      LocalData.addFavorite(item);
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Ditambahkan ke favorit',
-                                          ),
-                                          duration: Duration(seconds: 1),
-                                        ),
-                                      );
-                                    }
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
                       ),
                     );
                   },
@@ -191,8 +176,7 @@ class _HomePageState extends State<HomePage> {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: isSelected ? Colors.blue : Colors.grey[200],
-        foregroundColor: isSelected ? Colors.white : Colors.black87,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        foregroundColor: isSelected ? Colors.white : Colors.black,
       ),
       onPressed: () => _changeCategory(value),
       child: Text(label),
