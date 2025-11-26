@@ -12,7 +12,7 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [const HomeScreen(), const FavoriteScreen()];
+  final List<Widget> _screens = [const HomePage(), const FavoritePage()];
 
   void _onItemTapped(int index) {
     setState(() {
