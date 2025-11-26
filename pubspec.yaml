@@ -4,7 +4,8 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.9.2
+  # Perbaikan: Ubah dari ^3.9.2 menjadi ^3.9.0 agar cocok dengan SDK Anda
+  sdk: ^3.9.0
 
 dependencies:
   flutter:
@@ -15,6 +16,7 @@ dependencies:
   intl: ^0.19.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
